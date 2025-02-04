@@ -18,7 +18,7 @@ telegramBot.startBot();
 discordBot.startBot();
 
 // Init routes
-app.get('/webhook', async (req, res) => {
+app.post('/webhook', async (req, res) => {
     const { type = ['discord', 'telegram'], message = 'Hello cu!!!' } =
         req.body;
 
