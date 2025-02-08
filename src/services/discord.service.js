@@ -62,7 +62,6 @@ class DiscordBot {
             const channel = await this.client.channels.fetch(channelId);
             if (channel) {
                 await channel.send(message);
-                console.log(`Message sent to channel ${channelId}: ${message}`);
             } else {
                 console.log(`Channel with ID ${channelId} not found`);
             }

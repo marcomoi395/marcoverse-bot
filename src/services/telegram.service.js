@@ -5,9 +5,14 @@ const { UNAUTHORIZED, BAD_REQUEST } = require('../core/responseHandler');
 
 class TelegramBot {
     constructor() {
+        if (!process.env.BOT_TELE_TOKEN)
+            throw new UNAUTHORIZED('Missing Bot Token');
+
         this.bot = new Telegraf(process.env.BOT_TELE_TOKEN);
 
         this.bot.command('start', (ctx) => {
+            console.log(ctx.message);
+
             ctx.reply('Hello cu!!');
         });
 
@@ -16,9 +21,6 @@ class TelegramBot {
     }
 
     async sendMessage(chatId, message) {
-        if (!process.env.BOT_TELE_TOKEN)
-            throw new UNAUTHORIZED('Missing Bot Token');
-
         try {
             await this.bot.telegram.sendMessage(chatId, message);
         } catch (e) {
@@ -26,8 +28,10 @@ class TelegramBot {
         }
     }
 
-    async startBot() {
-        await this.bot.launch();
+    startBot() {
+        if (this.bot.launched) return;
+        this.bot.launched = true;
+        this.bot.launch();
     }
 }
 
