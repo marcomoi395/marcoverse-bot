@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Init database
-// require("./dbs/init.mongodb");
+require('./dbs/init.mongodb');
 
 // Init bots
 const telegramBot = new TelegramBot();
