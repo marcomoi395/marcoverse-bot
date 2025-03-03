@@ -5,11 +5,27 @@ const {
     Events,
     GatewayIntentBits,
 } = require('discord.js');
+const cron = require('node-cron');
 
 class DiscordBot {
+    static count = 1;
+
     constructor() {
         this.client = new Client({ intents: [GatewayIntentBits.Guilds] });
         this.registerEvents();
+        this.sendMessageDaily();
+    }
+
+    static getCount() {
+        return this.count;
+    }
+
+    static increateCount() {
+        this.count++;
+    }
+
+    static resetCount() {
+        this.count = 1;
     }
 
     registerEvents() {
@@ -24,6 +40,10 @@ class DiscordBot {
 
             if (interaction.commandName === 'ping') {
                 await interaction.reply('Pong!');
+            }
+
+            if (interaction.commandName === 'r') {
+                DiscordBot.resetCount();
             }
         });
     }
@@ -68,6 +88,20 @@ class DiscordBot {
         } catch (error) {
             console.error('Error sending message to channel:', error);
         }
+    }
+
+    sendMessageDaily(channelId = '1346036441276350464') {
+        cron.schedule(
+            '0 6 * * *',
+            () => {
+                DiscordBot.increateCount();
+                const message = `Ngày thứ ${DiscordBot.getCount()}.`;
+                this.sendMessageToChannel(channelId, message);
+            },
+            {
+                timezone: 'Asia/Ho_Chi_Minh',
+            },
+        );
     }
 }
 
