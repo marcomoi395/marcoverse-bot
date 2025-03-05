@@ -24,12 +24,12 @@ class DiscordBot {
             const filePath = path.join(__dirname, 'count.json');
             if (fs.existsSync(filePath)) {
                 const data = fs.readFileSync(filePath, 'utf-8');
-                return JSON.parse(data).count || 2;
+                return JSON.parse(data).count || 1;
             }
         } catch (error) {
             console.error('Lỗi khi đọc file count.json:', error);
         }
-        return 2;
+        return 1;
     }
 
     static saveCount() {
@@ -55,7 +55,7 @@ class DiscordBot {
     }
 
     static resetCount() {
-        this.count = 2;
+        this.count = 1;
         this.saveCount();
     }
 
@@ -73,7 +73,7 @@ class DiscordBot {
 
             if (interaction.commandName === 'reset') {
                 DiscordBot.resetCount();
-                await interaction.reply('Counter đã reset về 2.');
+                await interaction.reply('Counter đã reset về 1.');
             }
 
             if (interaction.commandName === 'sync') {
@@ -116,7 +116,6 @@ class DiscordBot {
                 process.env.BOT_DISCORD_TOKEN,
             );
             console.log('Started refreshing application (/) commands.');
-            console.log(process.env.BOT_DISCORD_ID);
 
             await rest.put(
                 Routes.applicationCommands(process.env.BOT_DISCORD_ID),
