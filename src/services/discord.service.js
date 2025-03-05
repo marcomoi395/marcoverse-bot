@@ -6,14 +6,42 @@ const {
     GatewayIntentBits,
 } = require('discord.js');
 const cron = require('node-cron');
+const fs = require('fs');
+const path = require('path');
 
 class DiscordBot {
-    static count = 1;
+    static count = DiscordBot.loadCount();
 
     constructor() {
         this.client = new Client({ intents: [GatewayIntentBits.Guilds] });
         this.registerEvents();
         this.sendMessageDaily();
+    }
+
+    static loadCount() {
+        try {
+            const filePath = path.join(__dirname, 'count.json');
+            if (fs.existsSync(filePath)) {
+                const data = fs.readFileSync(filePath, 'utf-8');
+                return JSON.parse(data).count || 1;
+            }
+        } catch (error) {
+            console.error('Lỗi khi đọc file count.json:', error);
+        }
+        return 1;
+    }
+
+    static saveCount() {
+        try {
+            const filePath = path.join(__dirname, 'count.json');
+            fs.writeFileSync(
+                filePath,
+                JSON.stringify({ count: this.count }),
+                'utf-8',
+            );
+        } catch (error) {
+            console.error('Lỗi khi ghi file count.json:', error);
+        }
     }
 
     static getCount() {
@@ -22,19 +50,19 @@ class DiscordBot {
 
     static increateCount() {
         this.count++;
+        this.saveCount();
     }
 
     static resetCount() {
         this.count = 1;
+        this.saveCount();
     }
 
     registerEvents() {
-        // Sự kiện khi bot đã kết nối thành công
         this.client.on(Events.ClientReady, () => {
             console.log(`Logged in as ${this.client.user.tag}!`);
         });
 
-        // Sự kiện khi bot nhận lệnh từ người dùng
         this.client.on(Events.InteractionCreate, async (interaction) => {
             if (!interaction.isChatInputCommand()) return;
 
@@ -44,6 +72,7 @@ class DiscordBot {
 
             if (interaction.commandName === 'r') {
                 DiscordBot.resetCount();
+                await interaction.reply('Counter đã reset về 1.');
             }
         });
     }
