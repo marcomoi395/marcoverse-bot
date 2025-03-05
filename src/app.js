@@ -2,6 +2,7 @@ const express = require('express');
 require('dotenv').config();
 const TelegramBot = require('./services/telegram.service');
 const DiscordBot = require('./services/discord.service');
+const commands = require('./utils/commands');
 const app = express();
 
 // Init middlewares
@@ -48,7 +49,7 @@ app.post('/webhook', async (req, res) => {
 });
 
 app.get('/discord/register-commands', async (req, res) => {
-    await DiscordBot.registerCommands(req.body);
+    await DiscordBot.registerCommands(commands);
     res.send('Register commands successfully');
 });
 

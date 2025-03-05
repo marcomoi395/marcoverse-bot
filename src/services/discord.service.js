@@ -8,6 +8,7 @@ const {
 const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
+const commands = require('../utils/commands');
 
 class DiscordBot {
     static count = DiscordBot.loadCount();
@@ -23,12 +24,12 @@ class DiscordBot {
             const filePath = path.join(__dirname, 'count.json');
             if (fs.existsSync(filePath)) {
                 const data = fs.readFileSync(filePath, 'utf-8');
-                return JSON.parse(data).count || 1;
+                return JSON.parse(data).count || 2;
             }
         } catch (error) {
             console.error('Lỗi khi đọc file count.json:', error);
         }
-        return 1;
+        return 2;
     }
 
     static saveCount() {
@@ -48,13 +49,13 @@ class DiscordBot {
         return this.count;
     }
 
-    static increateCount() {
+    static increaseCount() {
         this.count++;
         this.saveCount();
     }
 
     static resetCount() {
-        this.count = 1;
+        this.count = 2;
         this.saveCount();
     }
 
@@ -70,9 +71,14 @@ class DiscordBot {
                 await interaction.reply('Pong!');
             }
 
-            if (interaction.commandName === 'r') {
+            if (interaction.commandName === 'reset') {
                 DiscordBot.resetCount();
-                await interaction.reply('Counter đã reset về 1.');
+                await interaction.reply('Counter đã reset về 2.');
+            }
+
+            if (interaction.commandName === 'sync') {
+                await DiscordBot.sendRequestToSynchronous();
+                await interaction.reply('Đã gửi request đồng bộ.');
             }
         });
     }
@@ -86,12 +92,31 @@ class DiscordBot {
         }
     }
 
+    static async sendRequestToSynchronous() {
+        try {
+            const response = await fetch(process.env.REQUEST_URL, {
+                method: 'GET',
+            });
+
+            if (!response.ok) {
+                throw new Error(
+                    `Request failed with status ${response.status}`,
+                );
+            }
+
+            console.log('Request successfull:', await response.text());
+        } catch (error) {
+            console.error('Error accessing gateway:', error);
+        }
+    }
+
     static async registerCommands(commands = []) {
         try {
             const rest = new REST({ version: '10' }).setToken(
                 process.env.BOT_DISCORD_TOKEN,
             );
             console.log('Started refreshing application (/) commands.');
+            console.log(process.env.BOT_DISCORD_ID);
 
             await rest.put(
                 Routes.applicationCommands(process.env.BOT_DISCORD_ID),
@@ -123,7 +148,7 @@ class DiscordBot {
         cron.schedule(
             '0 6 * * *',
             () => {
-                DiscordBot.increateCount();
+                DiscordBot.increaseCount();
                 const message = `Ngày thứ ${DiscordBot.getCount()}.`;
                 this.sendMessageToChannel(channelId, message);
             },
