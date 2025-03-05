@@ -77,8 +77,8 @@ class DiscordBot {
             }
 
             if (interaction.commandName === 'sync') {
-                await DiscordBot.sendRequestToSynchronous();
                 await interaction.reply('Đã gửi request đồng bộ.');
+                DiscordBot.sendRequestToSynchronous();
             }
         });
     }
