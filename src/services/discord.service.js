@@ -4,13 +4,18 @@ const {
     Routes,
     Events,
     GatewayIntentBits,
+    AttachmentBuilder,
 } = require('discord.js');
+const path = require('path');
+const commands = require('../utils/commands');
+const { log } = require('console');
+const convertVttToSrt = require('../utils/convertVttToSrt');
 
 class DiscordBot {
     constructor() {
         this.client = new Client({ intents: [GatewayIntentBits.Guilds] });
+        this.registerCommands(commands);
         this.registerEvents();
-        this.sendMessageDaily();
     }
 
     registerEvents() {
@@ -25,9 +30,31 @@ class DiscordBot {
                 await interaction.reply('Pong!');
             }
 
-            if (interaction.commandName === 'reset') {
-                DiscordBot.resetCount();
-                await interaction.reply('Counter đã reset về 1.');
+            if (interaction.commandName === 'mwtm') {
+                const input = interaction.options.getString('code');
+
+                const codeArray = input.split(',').map((code) => code.trim());
+                await interaction.deferReply();
+
+                codeArray.forEach(async (code, index) => {
+                    const url = `https://mixwiththemasters.com/videos/_/get_subtitles/${code}.vtt`;
+                    const response = await fetch(url);
+                    if (!response.ok)
+                        throw new Error(`Lỗi tải file: ${response.statusText}`);
+
+                    const vttText = await response.text();
+                    const srtText = convertVttToSrt(vttText);
+
+                    const buffer = Buffer.from(srtText, 'utf-8');
+                    const attachment = new AttachmentBuilder(buffer, {
+                        name: `Part ${index + 1}.vtt`,
+                    });
+
+                    await interaction.followUp({
+                        content: `Part ${index + 1}:`,
+                        files: [attachment],
+                    });
+                });
             }
 
             if (interaction.commandName === 'sync') {
@@ -51,7 +78,7 @@ class DiscordBot {
             const response = await fetch(process.env.REQUEST_URL, {
                 method: 'GET',
             });
-
+            e;
             if (!response.ok) {
                 throw new Error(
                     `Request failed with status ${response.status}`,
@@ -64,7 +91,7 @@ class DiscordBot {
         }
     }
 
-    static async registerCommands(commands = []) {
+    async registerCommands(commands = []) {
         try {
             const rest = new REST({ version: '10' }).setToken(
                 process.env.BOT_DISCORD_TOKEN,
@@ -97,18 +124,25 @@ class DiscordBot {
         }
     }
 
-    // sendMessageDaily(channelId = '1346036441276350464') {
-    //     cron.schedule(
-    //         '0 6 * * *',
-    //         () => {
-    //             const message = `Ngày thứ ${DiscordBot.getCount()}.`;
-    //             this.sendMessageToChannel(channelId, message);
-    //         },
-    //         {
-    //             timezone: 'Asia/Ho_Chi_Minh',
-    //         },
-    //     );
-    // }
+    async sendFile(channelId) {
+        const filePath = path.join(__dirname, 'example.txt');
+
+        try {
+            const channel = await this.client.channels.fetch(channelId);
+
+            if (channel) {
+                await channel.send({
+                    content: 'OK',
+                    files: [filePath],
+                });
+            } else {
+                console.log(`Channel with ID ${channelId} not found`);
+            }
+        } catch (err) {
+            console.error('Error sending file:', err);
+            this.sendMessageToChannel(channelId, 'Error sending file');
+        }
+    }
 }
 
 module.exports = DiscordBot;
