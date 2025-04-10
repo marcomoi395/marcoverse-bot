@@ -5,58 +5,12 @@ const {
     Events,
     GatewayIntentBits,
 } = require('discord.js');
-const cron = require('node-cron');
-const fs = require('fs');
-const path = require('path');
-const commands = require('../utils/commands');
 
 class DiscordBot {
-    static count = DiscordBot.loadCount();
-
     constructor() {
         this.client = new Client({ intents: [GatewayIntentBits.Guilds] });
         this.registerEvents();
         this.sendMessageDaily();
-    }
-
-    static loadCount() {
-        try {
-            const filePath = path.join(__dirname, 'count.json');
-            if (fs.existsSync(filePath)) {
-                const data = fs.readFileSync(filePath, 'utf-8');
-                return JSON.parse(data).count || 1;
-            }
-        } catch (error) {
-            console.error('Lỗi khi đọc file count.json:', error);
-        }
-        return 1;
-    }
-
-    static saveCount() {
-        try {
-            const filePath = path.join(__dirname, 'count.json');
-            fs.writeFileSync(
-                filePath,
-                JSON.stringify({ count: this.count }),
-                'utf-8',
-            );
-        } catch (error) {
-            console.error('Lỗi khi ghi file count.json:', error);
-        }
-    }
-
-    static getCount() {
-        return this.count;
-    }
-
-    static increaseCount() {
-        this.count++;
-        this.saveCount();
-    }
-
-    static resetCount() {
-        this.count = 1;
-        this.saveCount();
     }
 
     registerEvents() {
@@ -143,19 +97,18 @@ class DiscordBot {
         }
     }
 
-    sendMessageDaily(channelId = '1346036441276350464') {
-        cron.schedule(
-            '0 6 * * *',
-            () => {
-                DiscordBot.increaseCount();
-                const message = `Ngày thứ ${DiscordBot.getCount()}.`;
-                this.sendMessageToChannel(channelId, message);
-            },
-            {
-                timezone: 'Asia/Ho_Chi_Minh',
-            },
-        );
-    }
+    // sendMessageDaily(channelId = '1346036441276350464') {
+    //     cron.schedule(
+    //         '0 6 * * *',
+    //         () => {
+    //             const message = `Ngày thứ ${DiscordBot.getCount()}.`;
+    //             this.sendMessageToChannel(channelId, message);
+    //         },
+    //         {
+    //             timezone: 'Asia/Ho_Chi_Minh',
+    //         },
+    //     );
+    // }
 }
 
 module.exports = DiscordBot;
