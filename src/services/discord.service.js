@@ -93,7 +93,7 @@ class DiscordBot {
             const response = await fetch(process.env.REQUEST_URL, {
                 method: 'GET',
             });
-            e;
+
             if (!response.ok) {
                 throw new Error(
                     `Request failed with status ${response.status}`,
