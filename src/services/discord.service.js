@@ -9,6 +9,9 @@ const {
 const path = require('path');
 const commands = require('../utils/commands');
 const { log } = require('console');
+const { serialize } = require('v8');
+const AzureTranslator = require('./azureTranslation.service');
+const SubtitleProcessor = require('./subtitleProcess');
 const convertVttToSrt = require('../utils/convertVttToSrt');
 
 class DiscordBot {
@@ -35,8 +38,9 @@ class DiscordBot {
 
                 const codeArray = input.split(',').map((code) => code.trim());
                 await interaction.deferReply();
+                const attachments = [];
 
-                codeArray.forEach(async (code, index) => {
+                for (const [index, code] of codeArray.entries()) {
                     const url = `https://mixwiththemasters.com/videos/_/get_subtitles/${code}.vtt`;
                     const response = await fetch(url);
                     if (!response.ok)
@@ -45,15 +49,26 @@ class DiscordBot {
                     const vttText = await response.text();
                     const srtText = convertVttToSrt(vttText);
 
-                    const buffer = Buffer.from(srtText, 'utf-8');
-                    const attachment = new AttachmentBuilder(buffer, {
-                        name: `Part ${index + 1}.vtt`,
-                    });
+                    // Translate the subtitle from ENG to VI
+                    const translator = new AzureTranslator(
+                        process.env.SUBSCRIPTION_KEY,
+                        'southeastasia',
+                    );
+                    const processor = new SubtitleProcessor(translator);
+                    const translatedSubtitles =
+                        await processor.translateSubtitles(srtText, 'en', 'vi');
 
-                    await interaction.followUp({
-                        content: `Part ${index + 1}:`,
-                        files: [attachment],
-                    });
+                    const buffer = Buffer.from(translatedSubtitles, 'utf-8');
+                    attachments.push(
+                        new AttachmentBuilder(buffer, {
+                            name: `Part ${index + 1}.srt`,
+                        }),
+                    );
+                }
+
+                await interaction.followUp({
+                    content: 'OK',
+                    files: attachments,
                 });
             }
 

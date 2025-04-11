@@ -1,32 +1,69 @@
-const convertVttToSrt = (vtt) => {
-    const lines = vtt.trim().split('\n');
-    const srtLines = [];
-    let counter = 1;
+/**
+ * Chuyển đổi nội dung chuỗi định dạng VTT sang định dạng SRT.
+ *
+ * @param {string} vttContent Nội dung file VTT dưới dạng chuỗi.
+ * @returns {string} Nội dung file SRT dưới dạng chuỗi.
+ */
+function vttToSrt(vttContent) {
+    if (!vttContent || typeof vttContent !== 'string') {
+        return '';
+    }
 
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
+    let srtContent = '';
+    let cueCounter = 1;
 
-        // Bỏ qua dòng metadata
-        if (line === 'WEBVTT' || line === '') continue;
+    const blocks = vttContent.trim().split(/\r?\n\r?\n/);
 
-        // Kiểm tra dòng thời gian
-        if (line.includes('-->')) {
-            const startTime = line.split('-->')[0].trim().replace('.', ',');
-            const endTime = line.split('-->')[1].trim().replace('.', ',');
-            const textLines = [];
+    for (const block of blocks) {
+        const lines = block.trim().split(/\r?\n/);
 
-            // Lấy text subtitle ở các dòng kế tiếp
-            while (lines[i + 1] && lines[i + 1].trim() !== '') {
-                textLines.push(lines[++i].trim());
+        if (
+            lines.length === 0 ||
+            lines[0].trim() === '' ||
+            lines[0].trim() === 'WEBVTT' ||
+            lines[0].trim().startsWith('NOTE')
+        ) {
+            continue;
+        }
+
+        let timestampLine = '';
+        let textStartIndex = -1;
+
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes('-->')) {
+                timestampLine = lines[i];
+                textStartIndex = i + 1;
+                break;
             }
+        }
 
-            srtLines.push(`${counter++}`);
-            srtLines.push(`${startTime} --> ${endTime}`);
-            srtLines.push(...textLines, '');
+        if (!timestampLine || textStartIndex === -1) {
+            // Bỏ qua nếu không tìm thấy timestamp hợp lệ
+            continue;
+        }
+
+        const timeRegex =
+            /(?:(\d{1,2}):)?(\d{2}:\d{2}\.\d{3})\s*-->\s*(?:(\d{1,2}):)?(\d{2}:\d{2}\.\d{3})/;
+        const match = timestampLine.match(timeRegex);
+
+        if (match) {
+            const startHours = match[1] ? match[1].padStart(2, '0') : '00';
+            const startRest = match[2].replace('.', ',');
+            const endHours = match[3] ? match[3].padStart(2, '0') : '00';
+            const endRest = match[4].replace('.', ',');
+
+            const srtTimestamp = `${startHours}:${startRest} --> ${endHours}:${endRest}`;
+            const textLines = lines.slice(textStartIndex).join('\n');
+
+            srtContent += `${cueCounter}\n`;
+            srtContent += `${srtTimestamp}\n`;
+            srtContent += `${textLines}\n\n`;
+
+            cueCounter++;
         }
     }
 
-    return srtLines.join('\n');
-};
+    return srtContent.trim();
+}
 
-module.exports = convertVttToSrt;
+module.exports = vttToSrt;
