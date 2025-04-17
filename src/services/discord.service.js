@@ -13,6 +13,8 @@ const { serialize } = require('v8');
 const AzureTranslator = require('./azureTranslation.service');
 const SubtitleProcessor = require('./subtitleProcess');
 const convertVttToSrt = require('../utils/convertVttToSrt');
+const downloadMp3 = require('../utils/ytDownloader');
+const fs = require('fs');
 
 class DiscordBot {
     constructor() {
@@ -70,6 +72,32 @@ class DiscordBot {
                     content: 'OK',
                     files: attachments,
                 });
+            }
+
+            if (interaction.commandName === 'mp3') {
+                const input = interaction.options.getString('url');
+
+                await interaction.deferReply();
+
+                try {
+                    downloadMp3(input).then(async (filePath) => {
+                        await interaction.followUp({
+                            content: '🎵  Đây là file MP3 bạn yêu cầu:',
+                            files: [filePath],
+                        });
+
+                        // Xoá file sau khi gửi
+                        fs.unlink(filePath, (err) => {
+                            if (err)
+                                console.error(`Không thể xoá file: ${err}`);
+                        });
+                    });
+                } catch (err) {
+                    console.error(err);
+                    await interaction.followUp({
+                        content: `❌ Có lỗi xảy ra: ${err}`,
+                    });
+                }
             }
 
             if (interaction.commandName === 'sync') {

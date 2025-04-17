@@ -8,10 +8,22 @@ const commands = [
         description: 'Download subtitle from Mix with the Masters',
         options: [
             {
-                name: 'code', // tên của option
+                name: 'code',
                 description: 'Nhập một chuỗi',
                 type: 3,
-                required: true, // bắt buộc phải nhập
+                required: true,
+            },
+        ],
+    },
+    {
+        name: 'mp3',
+        description: 'Download audio from Youtube',
+        options: [
+            {
+                name: 'url',
+                description: 'Nhập url',
+                type: 3,
+                required: true,
             },
         ],
     },
