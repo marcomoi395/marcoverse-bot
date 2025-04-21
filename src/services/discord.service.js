@@ -74,35 +74,35 @@ class DiscordBot {
                 });
             }
 
-            if (interaction.commandName === 'mp3') {
-                const input = interaction.options.getString('url');
-
-                await interaction.deferReply();
-
-                try {
-                    downloadMp3(input)
-                        .then(async (filePath) => {
-                            await interaction.followUp({
-                                content: '🎵  Đây là file MP3 bạn yêu cầu:',
-                                files: [filePath],
-                            });
-
-                            // Xoá file sau khi gửi
-                            fs.unlink(filePath, (err) => {
-                                if (err)
-                                    console.error(`Không thể xoá file: ${err}`);
-                            });
-                        })
-                        .catch((err) => {
-                            console.error('Lỗi xảy ra:', err);
-                        });
-                } catch (err) {
-                    console.error(err);
-                    await interaction.followUp({
-                        content: `❌ Có lỗi xảy ra: ${err}`,
-                    });
-                }
-            }
+            // if (interaction.commandName === 'mp3') {
+            //     const input = interaction.options.getString('url');
+            //
+            //     await interaction.deferReply();
+            //
+            //     try {
+            //         downloadMp3(input)
+            //             .then(async (filePath) => {
+            //                 await interaction.followUp({
+            //                     content: '🎵  Đây là file MP3 bạn yêu cầu:',
+            //                     files: [filePath],
+            //                 });
+            //
+            //                 // Xoá file sau khi gửi
+            //                 fs.unlink(filePath, (err) => {
+            //                     if (err)
+            //                         console.error(`Không thể xoá file: ${err}`);
+            //                 });
+            //             })
+            //             .catch((err) => {
+            //                 console.error('Lỗi xảy ra:', err);
+            //             });
+            //     } catch (err) {
+            //         console.error(err);
+            //         await interaction.followUp({
+            //             content: `❌ Có lỗi xảy ra: ${err}`,
+            //         });
+            //     }
+            // }
 
             if (interaction.commandName === 'sync') {
                 await interaction.reply('Đã gửi request đồng bộ.');
