@@ -2,7 +2,6 @@ const express = require('express');
 require('dotenv').config();
 const TelegramBot = require('./services/telegram.service');
 const DiscordBot = require('./services/discord.service');
-const commands = require('./utils/commands');
 const app = express();
 
 // Init middlewares
@@ -19,9 +18,6 @@ discordBot.startBot();
 telegramBot.startBot();
 
 // Init routes
-// app.get('', async (req, res) => {
-//     res.send('ok');
-// });
 
 app.post('/webhook', async (req, res) => {
     try {
@@ -47,10 +43,5 @@ app.post('/webhook', async (req, res) => {
         res.status(500).send('Error when sending webhook');
     }
 });
-
-// app.get('/discord/register-commands', async (req, res) => {
-//     await DiscordBot.registerCommands(commands);
-//     res.send('Register commands successfully');
-// });
 
 module.exports = app;
